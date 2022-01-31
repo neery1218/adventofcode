@@ -4,17 +4,18 @@ fn main() {
         .map(|tok| tok.parse().unwrap())
         .collect();
 
-    let mut prev_sliding_window_sum = depths[0] + depths[1] + depths[2];
-    let mut sliding_window_sum = prev_sliding_window_sum;
-    let mut num_increases = 0;
+    let triple_sums: Vec<u32> = depths
+        .iter()
+        .zip(depths.iter().skip(1))
+        .zip(depths.iter().skip(2))
+        .map(|((a, b), c)| a + b + c)
+        .collect();
 
-    for (i, val) in depths.iter().skip(3).enumerate() {
-        sliding_window_sum = sliding_window_sum - depths[i] + val;
-        if sliding_window_sum > prev_sliding_window_sum {
-            num_increases += 1;
-        }
+    let num_increases = triple_sums
+        .iter()
+        .zip(triple_sums.iter().skip(1))
+        .filter(|(a, b)| b > a)
+        .count();
 
-        prev_sliding_window_sum = sliding_window_sum;
-    }
     println!("{}", num_increases);
 }
