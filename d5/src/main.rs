@@ -8,7 +8,7 @@ struct Point {
 }
 
 fn main() {
-    let points: Vec<(Point, Point)> = include_str!("input.txt")
+    let points = include_str!("input.txt")
         .lines()
         .map(|l| {
             let toks: Vec<&str> = l.splitn(3, ' ').collect();
@@ -24,12 +24,10 @@ fn main() {
                     y: right[1],
                 },
             )
-        })
-        .collect();
+        });
 
     // only keep horizontal and vertical and diagonal lines
     let lines: Vec<(Point, Point)> = points
-        .into_iter()
         .filter(|(p1, p2)| {
             p1.x == p2.x || p1.y == p2.y || (p1.x - p2.x).abs() == (p1.y - p2.y).abs()
         })
