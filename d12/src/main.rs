@@ -69,7 +69,11 @@ fn find_all_paths_two<'a>(
 
         let mut new_path = cur_path.clone();
         new_path.push(n);
-        total_paths += find_all_paths_two(adj_list, new_path, visited_twice || (!is_uppercase && n_count == 1));
+        total_paths += find_all_paths_two(
+            adj_list,
+            new_path,
+            visited_twice || (!is_uppercase && n_count == 1),
+        );
     }
 
     total_paths
