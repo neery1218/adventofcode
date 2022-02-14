@@ -48,6 +48,7 @@ fn main() {
     let max_x = final_points.iter().map(|p| p.0).max().unwrap();
     let max_y = final_points.iter().map(|p| p.1).max().unwrap();
 
+    // print fold
     for r in 0..=max_y {
         for c in 0..max_x {
             if final_points.contains(&Point(c, r)) {
