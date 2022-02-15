@@ -40,7 +40,7 @@ fn main() {
             .fold(HashMap::new(), |mut acc, ((c1, c2), val)| {
                 match insertion_rules.get(&(c1, c2)) {
                     None => {
-                        acc.entry((c1, c2)).and_modify(|e| *e += val).or_insert(val);
+                        *acc.entry((c1, c2)).or_insert(0) += val;
                     }
                     Some(inter_val) => {
                         *acc.entry((c1, *inter_val)).or_insert(0) += val;
