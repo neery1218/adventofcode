@@ -12,7 +12,7 @@ fn main() {
         .collect();
 
     // expand grid
-    let mut grid: [[u32; GRID_SIZE * 5]; GRID_SIZE*5] = [[0; GRID_SIZE*5]; GRID_SIZE*5];
+    let mut grid: [[u32; GRID_SIZE * 5]; GRID_SIZE * 5] = [[0; GRID_SIZE * 5]; GRID_SIZE * 5];
     for i in 0..small_grid.len() {
         for j in 0..small_grid[0].len() {
             let val = small_grid[i][j];
@@ -22,7 +22,7 @@ fn main() {
                     if new_val > 9 {
                         new_val = new_val % 10 + 1;
                     }
-                    grid[GRID_SIZE*r + i][GRID_SIZE*c + j] = new_val;
+                    grid[GRID_SIZE * r + i][GRID_SIZE * c + j] = new_val;
                 }
             }
         }
