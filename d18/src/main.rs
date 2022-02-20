@@ -1,7 +1,7 @@
 #![feature(box_patterns)]
+use std::cmp;
 use std::collections::VecDeque;
 use std::fmt;
-use std::cmp;
 
 #[derive(Debug)]
 enum Node {
@@ -208,7 +208,7 @@ fn main() {
 
             let a = parse_snailfish_num(&mut lines[i].chars()).unwrap();
             let b = parse_snailfish_num(&mut lines[j].chars()).unwrap();
-            mag = cmp::max(magnitude(&reduce(add(a,b))), mag);
+            mag = cmp::max(magnitude(&reduce(add(a, b))), mag);
         }
     }
     println!("{}", mag);
