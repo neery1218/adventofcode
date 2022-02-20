@@ -1,6 +1,7 @@
 #![feature(box_patterns)]
 use std::collections::VecDeque;
 use std::fmt;
+use std::cmp;
 
 #[derive(Debug)]
 enum Node {
@@ -181,6 +182,7 @@ fn magnitude(node: &Node) -> u32 {
 }
 
 fn main() {
+    // part 1
     let mut nums: VecDeque<Node> = include_str!("test2.txt")
         .lines()
         .map(|l| parse_snailfish_num(&mut l.chars()).unwrap())
@@ -194,4 +196,20 @@ fn main() {
 
     println!("{}", sum);
     println!("{}", magnitude(&sum));
+
+    // part 2
+    let mut mag = 0;
+    let lines: Vec<&str> = include_str!("test2.txt").lines().collect();
+    for i in 0..lines.len() {
+        for j in 0..lines.len() {
+            if i == j {
+                continue;
+            }
+
+            let a = parse_snailfish_num(&mut lines[i].chars()).unwrap();
+            let b = parse_snailfish_num(&mut lines[j].chars()).unwrap();
+            mag = cmp::max(magnitude(&reduce(add(a,b))), mag);
+        }
+    }
+    println!("{}", mag);
 }
