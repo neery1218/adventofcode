@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use std::cmp;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 
@@ -163,6 +164,18 @@ fn main() {
         }
     }
 
-    println!("{}", final_grid.len());
+    println!("num unique: {}", final_grid.len());
+    let mut max_dist = i32::min_value();
+    for p1 in scanner_pos.values() {
+        for p2 in scanner_pos.values() {
+            max_dist = cmp::max(
+                max_dist,
+                (p1.0 - p2.0).abs() + (p1.1 - p2.1).abs() + (p1.2 - p2.2).abs(),
+            );
+        }
+    }
+
+    println!("max dist is: {}", max_dist);
+
     println!("True positions: {:?}", scanner_pos);
 }
