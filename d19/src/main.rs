@@ -3,7 +3,7 @@ use std::cmp;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 
-const THRESHOLD: usize = 3;
+const THRESHOLD: usize = 12;
 
 fn get_all_orientations(v: &[i32]) -> Vec<(i32, i32, i32)> {
     vec![
