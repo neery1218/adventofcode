@@ -6,7 +6,7 @@ use std::fmt;
 type Grid = BTreeMap<(isize, isize), char>;
 
 const NEIGHBORS: [(isize, isize); 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
-const MAX_ROOM_DEPTH: isize = 5;
+const MAX_ROOM_DEPTH: isize = 3;
 const DOORS: [(isize, isize); 4] = [(1, 3), (1, 5), (1, 7), (1, 9)];
 const ROOMS: [(isize, isize); 16] = [
     (2, 3),
@@ -207,7 +207,7 @@ fn print_grid(gs: &GameState, grid: &Grid) {
     }
     println!();
 
-    for i in 0..7 {
+    for i in 0..(MAX_ROOM_DEPTH+2) {
         for j in 0..13 {
             match gs.pos.get(&(i, j)) {
                 None => print!("{:2}|", grid.get(&(i as isize, j as isize)).unwrap()),
