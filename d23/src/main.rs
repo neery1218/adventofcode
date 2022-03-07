@@ -34,7 +34,7 @@ fn main() {
     let mut min_sol = None;
     println!(
         "{:?}",
-        search(&grid, &pos, &HashMap::new(), 0, &mut min_sol)
+        search(&grid, &pos, &HashMap::new(), 0, &mut min_sol, &mut HashMap::new())
     );
 }
 
@@ -55,17 +55,34 @@ fn print_grid(grid: &Grid, pos: &Pos) {
     }
 }
 
+fn pos_to_str(pos: &Pos) -> String {
+    pos
+        .iter()
+        .map(|(rc, pod)| format!("{:?}-{}", rc, pod))
+        .collect()
+}
+
 fn search(
     grid: &Grid,
     pos: &Pos,
     moves: &HashMap<String, Vec<(isize, isize)>>,
     energy_expended: usize,
     min_sol: &mut Option<usize>,
+    visited: &mut HashMap<String, usize>,
 ) {
     match *min_sol {
         Some(sol) if energy_expended >= sol => return,
         _ => (),
     };
+
+    let key = pos_to_str(pos);
+    match visited.get(&key) {
+        Some(&e) if e <= energy_expended => {
+            return
+        }
+        _ => (),
+    }
+    visited.insert(key, energy_expended);
 
     // println!("Searching...");
     // println!("Energy expended so far: {}", energy_expended);
@@ -84,90 +101,88 @@ fn search(
         return;
     }
 
-    pos.iter().for_each(|((i, j), pod)| {
-        if moves.get(pod).map(|v| v.len()).unwrap_or(0) == 2 {
-            return;
-        }
+    let mut valid_moves: Vec<_> = pos
+        .iter()
+        .flat_map(|((i, j), pod)| {
+            if moves.get(pod).map(|v| v.len()).unwrap_or(0) == 2 {
+                return vec![];
+            }
 
-        let energy_per_step = match pod.as_str() {
-            "A1" | "A2" => 1,
-            "B1" | "B2" => 10,
-            "C1" | "C2" => 100,
-            "D1" | "D2" => 1000,
-            _ => unreachable!("{}", pod),
-        };
+            let energy_per_step = match pod.as_str() {
+                "A1" | "A2" => 1,
+                "B1" | "B2" => 10,
+                "C1" | "C2" => 100,
+                "D1" | "D2" => 1000,
+                _ => unreachable!("{}", pod),
+            };
 
-        let mut moves_for_pod = BTreeMap::new();
-        let pod_rooms = match pod.as_str() {
-            "A1" | "A2" => ROOMS_BY_POD[0],
-            "B1" | "B2" => ROOMS_BY_POD[1],
-            "C1" | "C2" => ROOMS_BY_POD[2],
-            "D1" | "D2" => ROOMS_BY_POD[3],
-            _ => unreachable!("{}", pod),
-        };
+            let mut moves_for_pod = BTreeMap::new();
+            let pod_rooms = match pod.as_str() {
+                "A1" | "A2" => ROOMS_BY_POD[0],
+                "B1" | "B2" => ROOMS_BY_POD[1],
+                "C1" | "C2" => ROOMS_BY_POD[2],
+                "D1" | "D2" => ROOMS_BY_POD[3],
+                _ => unreachable!("{}", pod),
+            };
 
-        let pod_char = pod.chars().next();
-        match (
-            pos.get(&pod_rooms[0]).map(|s| s.chars().next()),
-            pos.get(&pod_rooms[1]).map(|s| s.chars().next()),
-        ) {
-            (Some(a), Some(b)) if a == pod_char && b == pod_char => return,
-            _ => (),
-        }
+            let pod_char = pod.chars().next();
+            match (
+                pos.get(&pod_rooms[0]).map(|s| s.chars().next()),
+                pos.get(&pod_rooms[1]).map(|s| s.chars().next()),
+            ) {
+                (Some(a), Some(b)) if a == pod_char && b == pod_char => return vec![],
+                _ => (),
+            }
 
-        if (*i, *j) == pod_rooms[1] {
-            return;
-        }
+            if (*i, *j) == pod_rooms[1] {
+                return vec![];
+            }
 
-        get_moves_for_pod((*i, *j), grid, pos, &mut moves_for_pod, 0, energy_per_step);
-        let mut moves_sorted: Vec<_> = moves_for_pod
-            .iter()
-            .map(|(k, v)| (v, k))
-            .filter(|(_, (i, j))| match (*i, *j) {
-                a if DOORS.contains(&a) => false,
-                _ => true,
-            })
-            .collect();
+            get_moves_for_pod((*i, *j), grid, pos, &mut moves_for_pod, 0, energy_per_step);
+            moves_for_pod
+                .into_iter()
+                .filter(|(rc, _)| !DOORS.contains(rc))
+                .map(|(rc, energy)| (energy, pod, (*i, *j), rc))
+                .collect()
+        })
+        .collect();
 
-        moves_sorted.sort_unstable();
-        let completed_moves: Vec<_> = moves_sorted
-            .clone()
-            .into_iter()
-            .filter(|(_, (i, j))| pod_rooms.contains(&(*i, *j)))
-            .collect();
-        if !completed_moves.is_empty() {
-            moves_sorted = completed_moves;
-        }
+    valid_moves.sort_unstable();
 
-        // println!("Available moves for pod: {} {:?}", pod, moves_sorted);
-        moves_sorted
-            .into_iter()
-            .for_each(|(energy, (new_i, new_j))| {
-                let mut new_moves = moves.clone();
-                new_moves
-                    .entry(pod.clone())
-                    .and_modify(|e| e.push((*new_i, *new_j)))
-                    .or_insert_with(|| vec![(*new_i, *new_j)]);
+    valid_moves
+        .into_iter()
+        .for_each(|(energy, pod, old_rc, new_rc)| {
+            let mut new_moves = moves.clone();
+            new_moves
+                .entry(pod.clone())
+                .and_modify(|e| e.push(new_rc))
+                .or_insert_with(|| vec![new_rc]);
 
-                if new_moves.get(pod).map_or(0, |v| v.len()) == 2
-                    && !pod_rooms.contains(&(*new_i, *new_j))
-                {
-                    return;
-                }
+            let pod_rooms = match pod.as_str() {
+                "A1" | "A2" => ROOMS_BY_POD[0],
+                "B1" | "B2" => ROOMS_BY_POD[1],
+                "C1" | "C2" => ROOMS_BY_POD[2],
+                "D1" | "D2" => ROOMS_BY_POD[3],
+                _ => unreachable!("{}", pod),
+            };
 
-                let mut new_pos = pos.clone();
-                new_pos.remove(&(*i, *j));
-                new_pos.insert((*new_i, *new_j), pod.clone());
+            if new_moves.get(pod).map_or(0, |v| v.len()) == 2 && !pod_rooms.contains(&new_rc) {
+                return;
+            }
 
-                search(
-                    grid,
-                    &new_pos,
-                    &new_moves,
-                    energy_expended + *energy,
-                    min_sol,
-                );
-            });
-    });
+            let mut new_pos = pos.clone();
+            new_pos.remove(&old_rc);
+            new_pos.insert(new_rc, pod.clone());
+
+            search(
+                grid,
+                &new_pos,
+                &new_moves,
+                energy_expended + energy,
+                min_sol,
+                visited,
+            );
+        });
 }
 
 fn get_moves_for_pod(
@@ -249,15 +264,26 @@ fn done(pos: &Pos) -> bool {
 }
 
 const DOORS: [(isize, isize); 4] = [(1, 3), (1, 5), (1, 7), (1, 9)];
-const ROOMS: [(isize, isize); 8] = [
+const ROOMS: [(isize, isize); 16] = [
     (2, 3),
     (3, 3),
+    (4, 3),
+    (5, 3),
+
     (2, 5),
     (3, 5),
+    (4, 5),
+    (5, 5),
+
     (2, 7),
     (3, 7),
+    (4, 7),
+    (5, 7),
+
     (2, 9),
     (3, 9),
+    (4, 9),
+    (5, 9),
 ];
 
 const ROOMS_BY_POD: [[(isize, isize); 2]; 4] = [
