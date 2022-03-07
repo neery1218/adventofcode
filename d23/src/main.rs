@@ -207,7 +207,7 @@ fn print_grid(gs: &GameState, grid: &Grid) {
     }
     println!();
 
-    for i in 0..(MAX_ROOM_DEPTH+2) {
+    for i in 0..(MAX_ROOM_DEPTH + 2) {
         for j in 0..13 {
             match gs.pos.get(&(i, j)) {
                 None => print!("{:2}|", grid.get(&(i as isize, j as isize)).unwrap()),
